@@ -14,7 +14,7 @@ if ( (Get-PSSnapin Pscx -ErrorAction SilentlyContinue) -eq $null -and (Get-PSSna
 # Perforce (if available)
 if ( $null -ne ( Get-Command p4.exe -ErrorAction SilentlyContinue ) )
 {
-    . .\scripts\Initialize-Perforce.ps1
+    . ~\Documents\WindowsPowerShell\scripts\Initialize-Perforce.ps1
 }
 
 # Path
