@@ -2,7 +2,7 @@
 # Initializes anything that has to do with a Perforce environment
 ###############################################################################
 # setup some environment variables
-set-item env:P4CLIENT env:COMPUTERNAME
+set-item env:P4CLIENT $env:COMPUTERNAME
 set-item env:P4_ROOT (join-path $env:UserProfile 'Perforce')
 
 # Needs help with hard coded paths
