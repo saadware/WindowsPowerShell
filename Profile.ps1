@@ -11,6 +11,9 @@ if ( (Get-PSSnapin Pscx -ErrorAction SilentlyContinue) -eq $null -and (Get-PSSna
 # Start Personal Customization
 ###############################################################################
 
+# Path to include scripts directory
+set-item env:Path ( $env:Path + ';' + (Resolve-Path '~\Documents\WindowsPowerShell\scripts').Path )
+
 # Perforce (if available)
 if ( $null -ne ( Get-Command p4.exe -ErrorAction SilentlyContinue ) )
 {
@@ -35,23 +38,10 @@ else
 # Functions
 ###############################################################################
 
-# Build any project files
-function mkp([switch]$rebuild)
-{
-        ls *.cbproj | TwineBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
-}
-
-
-# Prompt
+# override prompt
 function prompt
 {
         $(if (test-path variable:/PSDebugContext) { '[DBG]: ' } else { '' }) + 'PS:' + $((Get-Location).Path -split "\\" | select -last 1) + $(if ($nestedpromptlevel -ge 1) { '>>' }) + '> '
-}
-
-# Create a tiny url
-function New-TinyUrl($url)
-{
-    (new-object net.webclient).downloadString("http://tinyurl.com/api-create.php?url=$url")
 }
 
 # Generates a config based off the branch specified and runs ccnet
@@ -107,8 +97,9 @@ function VsVars32($version = "9.0")
 # Runs a remote desktop connection to the specified machine
 function rdc
 {
-        param([string] $machine)
-        mstsc /w:1280 /h:1024 /v:$machine
+        param([string] $machine, [switch]$fullscreen)
+        #Invoke-Expression "mstsc /v:$machine $(if($fullscreen){ /fullscreen } else{ /w:1280 /h:1024 })"
+        "mstsc /v:$machine $(if($fullscreen){ /fullscreen } else{ /w:1280 /h:1024 })"
 }
 
 # restore a database from snapshot

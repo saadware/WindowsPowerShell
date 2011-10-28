@@ -51,90 +51,90 @@ param(
 	[switch]$Quiet,
 	[switch]$EnableTwine,
 	$TwineTargetFile = "C:\Program Files (x86)\JomiTech\TwineCompile\TCTargetsXE.targets"
-)
+     )
 Begin
 {
-	Write-Verbose "Starting..."
+    Write-Verbose "Starting..."
 
-	# stop on any errors
+# stop on any errors
 	$ErrorActionPreference = "Stop"
 
-	# enable debug if requested
+# enable debug if requested
 	if ( $Debug )
 	{
-		$DebugPreference = "Continue"
+	    $DebugPreference = "Continue"
 	}
 
-	# if twine is enabled, ensure the target script exists
-	if ( $EnableTwine -and -not (Test-Path $TwineTargetFile) )
-	{
-		Write-Error ("Invalid twine target file $TwineTargetFile: Specify with TwineTargetFile parameter.")
-	}
+# if twine is enabled, ensure the target script exists
+    if ( $EnableTwine -and -not (Test-Path $TwineTargetFile) )
+    {
+	Write-Error ("Invalid twine target file $TwineTargetFile: Specify with TwineTargetFile parameter.")
+    }
 
-	# setup environment/pathing
-	Set-Item env:FrameworkDir "C:\Windows\Microsoft.NET\Framework\v2.0.50727"
+# setup environment/pathing
+    Set-Item env:FrameworkDir "C:\Windows\Microsoft.NET\Framework\v2.0.50727"
 	Set-Item env:FrameworkVersion "v2.0.50727"
 	if ( (Get-Command msbuild.exe -ErrorAction SilentlyContinue) -eq $null )
 	{
-		Set-Item env:Path "$env:FrameworkDir;$env:Path"
+	    Set-Item env:Path "$env:FrameworkDir;$env:Path"
 	}
 }
 Process
 {
-	function Build-Project
+    function Build-Project
+    {
+	Process
 	{
-		Process
-		{
-			$fileObject = $_
-			$projectPath = $fileObject.FullName
-			$tmpBuildFile = $projectPath 
-			Write-Verbose $projectPath
-			$twineOptions = ""
-			if ( $EnableTwine )
-			{
-				Write-Verbose "Twine build enabled..."
-				$twineOptions = "/p:CoreCompileDependsOnTargets=`"RidlCompile;PasCompile;TCBuildFileList;TCCompile;AsmCompile;RcCompile`""
-				# generate temporary project file that has the twine options punched in
-				$tmpBuildFile = -join ($projectPath + ".tmp")
+	    $fileObject = $_
+	    $projectPath = $fileObject.FullName
+	    $tmpBuildFile = $projectPath 
+	    Write-Verbose $projectPath
+	    $twineOptions = ""
+	    if ( $EnableTwine )
+	    {
+		Write-Verbose "Twine build enabled..."
+		$twineOptions = "/p:CoreCompileDependsOnTargets=`"RidlCompile;PasCompile;TCBuildFileList;TCCompile;AsmCompile;RcCompile`""
+# generate temporary project file that has the twine options punched in
+		$tmpBuildFile = -join ($projectPath + ".tmp")
 
-				Write-Verbose "adding twine msbuild target to project"
-				[xml]$projXml = Get-Content $projectPath
-				$projXml.Project.InnerXml = ($projXml.Project.InnerXml + "<Import Project=`'$TwineTargetFile`' />")
-				$projXml.OuterXml | Out-File -FilePath $tmpBuildFile -Encoding UTF8
-			}
+		Write-Verbose "adding twine msbuild target to project"
+		[xml]$projXml = Get-Content $projectPath
+		$projXml.Project.InnerXml = ($projXml.Project.InnerXml + "<Import Project=`'$TwineTargetFile`' />")
+		$projXml.OuterXml | Out-File -FilePath $tmpBuildFile -Encoding UTF8
+	    }
 
-			# Run cmd so that options get sent it properly.
-			$theFileOutputName = $fileObject.BaseName
-			cmd.exe /c "msbuild.exe /nologo $tmpBuildFile $twineOptions /t:$Target /p:BCC_WarningIsError=$WarningsAsError /p:OutputName=$theFileOutputName $(if ( $Diagnose ) {'/verbosity:diagnostic' } elseif( $VerbosePreference -eq 'Continue' ) { '/verbosity:detailed' } elseif ( $Quiet ) { '/verbosity:quiet' } else { '/verbosity:normal' }) /p:ForceRebuild=$Rebuild"
-			if ( $LASTEXITCODE -ne 0 )
-			{
-				throw "Failed to compile $projectPath..."
-			}
-		}
+	    # Run cmd so that options get sent it properly.
+	    $theFileOutputName = $fileObject.BaseName
+	    cmd.exe /c "msbuild.exe /nologo $tmpBuildFile $twineOptions /t:$Target /p:BCC_WarningIsError=$WarningsAsError /p:OutputName=$theFileOutputName $(if ( $Diagnose ) {'/verbosity:diagnostic' } elseif( $VerbosePreference -eq 'Continue' ) { '/verbosity:detailed' } elseif ( $Quiet ) { '/verbosity:quiet' } else { '/verbosity:normal' }) /p:ForceRebuild=$Rebuild"
+	    if ( $LASTEXITCODE -ne 0 )
+	    {
+		throw "Failed to compile $projectPath..."
+	    }
 	}
-	
-	$file = $_
-	Write-Verbose $file.FullName
-	if ( $file.Extension -eq ".groupproj" )
-	{
-		# A group project contains multiple projects inside of it. Build each one.
-		Write-Verbose "processing project group..."
-		[xml]$groups = Get-Content $file
-		Push-Location $file.Directory
-		($groups.Project.ItemGroup | ? { $_.Projects -ne $null }).Projects | Select-Object -Property @{Name="Path"; Expression = {$file.Directory.FullName}},@{Name="ChildPath"; Expression = {$_.Include}} | Join-Path -Resolve | Get-Item | Build-Project
-		Pop-Location
-	}
-	elseif( $file.Extension -eq ".cbproj" )
-	{
-		Write-Verbose "processing project..."
-		$file | Build-Project
-	}
-	else
-	{
-		Write-Error ("invalid project file " + $file.FullName)
-	}
+    } # function Build-Project
+
+    $file = $_
+    Write-Verbose $file.FullName
+    if ( $file.Extension -eq ".groupproj" )
+    {
+	# A group project contains multiple projects inside of it. Build each one.
+	Write-Verbose "processing project group..."
+	[xml]$groups = Get-Content $file
+	Push-Location $file.Directory
+	($groups.Project.ItemGroup | ? { $_.Projects -ne $null }).Projects | Select-Object -Property @{Name="Path"; Expression = {$file.Directory.FullName}},@{Name="ChildPath"; Expression = {$_.Include}} | Join-Path -Resolve | Get-Item | Build-Project
+	Pop-Location
+    }
+    elseif( $file.Extension -eq ".cbproj" )
+    {
+	Write-Verbose "processing project..."
+	$file | Build-Project
+    }
+    else
+    {
+	Write-Error ("invalid project file " + $file.FullName)
+    }
 }
 End
 {
-	Write-Verbose "All Done"
+    Write-Verbose "All Done"
 }

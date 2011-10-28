@@ -3,7 +3,7 @@
 ###############################################################################
 # setup some environment variables
 set-item env:P4CLIENT $env:COMPUTERNAME
-set-item env:P4_ROOT (join-path $env:UserProfile 'Perforce')
+set-item env:P4_ROOT (p4 client -o | Select-String -Pattern "^Root:\s+(?<path>\w:.*$)").Matches[0].Groups["path"].Value
 
 # Needs help with hard coded paths
 $is64bit = ( $null -ne (get-item 'env:\ProgramFiles(x86)' -ErrorAction SilentlyContinue) )
@@ -23,7 +23,6 @@ set-item env:NANT_HOME (join-path $env:P4_ROOT  '\nub\nant-0.90')
 set-item env:NANT_CONTRIB (join-path $env:P4_ROOT '\nub\nantcontrib-0.85')
 set-item env:CXXTEST_HOME (join-path $env:P4_ROOT '\nub\cxxtest')
 
-
 # Setup some path shite
 set-item env:Path ( $env:Path + ';' + (join-path $env:NANT_HOME '\bin') )
 set-item env:Path ( $env:Path + ';' + (join-path $env:P4_ROOT 'ssaad\WindowsPowerShell\scripts') )
@@ -31,13 +30,19 @@ set-item env:Path ( $env:Path + ';' + (join-path $env:P4_ROOT 'ssaad\WindowsPowe
 # Build any group files
 function mkg($branch = "Main", [switch]$rebuild)
 {
-        Get-Item (Join-Path (Get-P4BranchClientView $branch) "MoversSuite\MoversSuite.groupproj") | TwineBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
+        Get-Item (Join-Path (Get-P4BranchClientView $branch) "MoversSuite\MoversSuite.groupproj") | Invoke-CppBuilderBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
 }
 
 # Build components 
 function mkc($branch = "Main", [switch]$rebuild)
 {
-        Get-Item (Join-Path (Get-P4BranchClientView $branch) "Components\Borland\MssComponents.cbproj") | TwineBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
+        Get-Item (Join-Path (Get-P4BranchClientView $branch) "Components\Borland\MssComponents.cbproj") | Invoke-CppBuilderBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
+}
+
+# Build all project files
+function mkp([switch]$rebuild)
+{
+        ls *.cbproj | Invoke-CppBuilderBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
 }
 
 # Retrieves the client mapping for a specific perforce branch
