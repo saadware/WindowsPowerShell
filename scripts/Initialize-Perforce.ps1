@@ -103,3 +103,10 @@ function ccnet
         generate-ccnet -branch $branch -gp $gp -production $production -snapshot $snapshot -template $template | out-file -encoding UTF8 ( join-path $root "server\$branch.crap.ccnet.config" )
         & .\ccnet.exe `-config:$branch.crap.ccnet.config 
 }
+
+# shortcut for main building
+function cc
+{
+        ccnet -branch Main -production MainJohnson -gp JSM
+}
+

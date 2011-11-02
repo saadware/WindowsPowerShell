@@ -334,11 +334,6 @@ function Add-CodeGuard($path)
         }
 }
 
-function cc
-{
-        ccnet -branch Main -production MainJohnson -gp JSM
-}
-
 function Get-CustomerBuilds
 {
 
