@@ -12,12 +12,13 @@ if ( (Get-PSSnapin Pscx -ErrorAction SilentlyContinue) -eq $null -and (Get-PSSna
 ###############################################################################
 
 # Path to include scripts directory
-set-item env:Path ( $env:Path + ';' + (Resolve-Path '~\Documents\WindowsPowerShell\scripts').Path )
+$scriptsDir = (Resolve-Path (Join-Path (get-item $PROFILE).Directory 'scripts') ).Path
 
+set-item env:Path ( $env:Path + ';' + $scriptsDir )
 # Perforce (if available)
 if ( $null -ne ( Get-Command p4.exe -ErrorAction SilentlyContinue ) )
 {
-    . ~\Documents\WindowsPowerShell\scripts\Initialize-Perforce.ps1
+    . "$scripts\Initialize-Perforce.ps1"
 }
 
 # Path
