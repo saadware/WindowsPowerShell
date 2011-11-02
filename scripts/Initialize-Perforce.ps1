@@ -1,8 +1,19 @@
 ###############################################################################
 # Initializes anything that has to do with a Perforce environment
 ###############################################################################
+# First figure out if we're logged in
+p4 login -s | out-null
+if ( $LASTEXITCODE -ne 0 )
+{
+	"Login into perforce please..."
+	p4 login
+}
+
 # setup some environment variables
-set-item env:P4CLIENT $env:COMPUTERNAME
+if ( -not (test-path env:P4CLIENT) )
+{ 
+	set-item env:P4CLIENT $env:COMPUTERNAME 
+}
 set-item env:P4_ROOT (p4 client -o | Select-String -Pattern "^Root:\s+(?<path>\w:.*$)").Matches[0].Groups["path"].Value
 
 # Needs help with hard coded paths

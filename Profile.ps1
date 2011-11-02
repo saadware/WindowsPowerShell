@@ -18,7 +18,7 @@ set-item env:Path ( $env:Path + ';' + $scriptsDir )
 # Perforce (if available)
 if ( $null -ne ( Get-Command p4.exe -ErrorAction SilentlyContinue ) )
 {
-    . "$scripts\Initialize-Perforce.ps1"
+    . "$scriptsDir\Initialize-Perforce.ps1"
 }
 
 # Path
