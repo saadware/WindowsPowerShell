@@ -67,3 +67,39 @@ function Get-P4BranchClientView($branch = "Main", $depot = "asd")
         (-split (p4 where $branchView) | select -Last 1) -replace "\\\.\.\.", ""
 }
 
+# Generates blank ccnet config for use with building
+function ccbuilds
+{
+        $root = ( join-path $env:P4_ROOT 'nub\ccnet-1.5.7256.1' )
+	$config = "ccbuilds.crap.ccnet.config"
+        push-location ( join-path $root 'server' )
+         "<cruisecontrol></cruisecontrol>" | out-file -encoding UTF8 ( join-path $root $config )
+        & .\ccnet.exe `-config:$config
+}
+
+# Generates a config based off the branch specified and runs ccnet
+function ccnet
+{
+        param
+        (
+                [Parameter(Mandatory=$true)]
+                $branch, 
+
+                [Parameter(Mandatory=$true)]
+                $production,
+
+                $snapshot = "$($production)_snap",
+
+                [Parameter(Mandatory=$true)]
+                $gp,
+
+                $template = $null
+        )
+
+
+        $root = ( join-path $env:P4_ROOT 'nub\ccnet-1.5.7256.1' )
+
+        push-location ( join-path $root 'server' )
+        generate-ccnet -branch $branch -gp $gp -production $production -snapshot $snapshot -template $template | out-file -encoding UTF8 ( join-path $root "server\$branch.crap.ccnet.config" )
+        & .\ccnet.exe `-config:$branch.crap.ccnet.config 
+}

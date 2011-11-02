@@ -34,7 +34,6 @@ else
     set-location $env:USERPROFILE 
 }
 
-
 ###############################################################################
 # Functions
 ###############################################################################
@@ -43,33 +42,6 @@ else
 function prompt
 {
         $(if (test-path variable:/PSDebugContext) { '[DBG]: ' } else { '' }) + 'PS:' + $((Get-Location).Path -split "\\" | select -last 1) + $(if ($nestedpromptlevel -ge 1) { '>>' }) + '> '
-}
-
-# Generates a config based off the branch specified and runs ccnet
-function ccnet
-{
-        param
-        (
-                [Parameter(Mandatory=$true)]
-                $branch, 
-
-                [Parameter(Mandatory=$true)]
-                $production,
-
-                $snapshot = "$($production)_snap",
-
-                [Parameter(Mandatory=$true)]
-                $gp,
-
-                $template = $null
-        )
-
-
-        $theCcnetRoot = ( join-path $env:P4_ROOT 'nub\ccnet-1.5.7256.1' )
-
-        push-location ( join-path $theCcnetRoot 'server' )
-        generate-ccnet -branch $branch -gp $gp -production $production -snapshot $snapshot -template $template | out-file -encoding UTF8 ( join-path $theCcnetRoot "server\$branch.crap.ccnet.config" )
-        & .\ccnet.exe `-config:$branch.crap.ccnet.config 
 }
 
 # Exposes the environment vars in a batch and sets them in this PS session
