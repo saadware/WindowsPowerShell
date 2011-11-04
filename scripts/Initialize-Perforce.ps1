@@ -41,19 +41,19 @@ set-item env:Path ( $env:Path + ';' + (join-path $env:P4_ROOT 'ssaad\WindowsPowe
 # Build any group files
 function mkg($branch = "Main", [switch]$rebuild)
 {
-        Get-Item (Join-Path (Get-P4BranchClientView $branch) "MoversSuite\MoversSuite.groupproj") | Invoke-CppBuilderBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
+        Get-Item (Join-Path (Get-P4BranchClientView $branch) "MoversSuite\MoversSuite.groupproj") | Invoke-CppBuilderBuild.ps1 -EnableTwine -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
 }
 
 # Build components 
 function mkc($branch = "Main", [switch]$rebuild)
 {
-        Get-Item (Join-Path (Get-P4BranchClientView $branch) "Components\Borland\MssComponents.cbproj") | Invoke-CppBuilderBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
+        Get-Item (Join-Path (Get-P4BranchClientView $branch) "Components\Borland\MssComponents.cbproj") | Invoke-CppBuilderBuild.ps1 -EnableTwine -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
 }
 
 # Build all project files
 function mkp([switch]$rebuild)
 {
-        ls *.cbproj | Invoke-CppBuilderBuild.ps1 -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
+        ls *.cbproj | Invoke-CppBuilderBuild.ps1 -EnableTwine -Target $( if ( $rebuild ) { "Build" } else { "Make" } )
 }
 
 # Retrieves the client mapping for a specific perforce branch
