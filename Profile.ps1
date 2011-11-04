@@ -70,9 +70,8 @@ function VsVars32($version = "9.0")
 # Runs a remote desktop connection to the specified machine
 function rdc
 {
-        param([string] $machine, [switch]$fullscreen)
-        #Invoke-Expression "mstsc /v:$machine $(if($fullscreen){ /fullscreen } else{ /w:1280 /h:1024 })"
-        "mstsc /v:$machine $(if($fullscreen){ /fullscreen } else{ /w:1280 /h:1024 })"
+        param([string]$machine, [switch]$fullscreen)
+        Invoke-Expression "mstsc /v:$machine $( if($fullscreen) { '/fullscreen' } else { '/w:1280 /h:1024' } )"
 }
 
 # restore a database from snapshot
