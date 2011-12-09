@@ -356,3 +356,37 @@ function Enter-Build05
 {
         Enter-PSSession -ComputerName build05.moverssuite.internal -Credential (Get-Credential moverssuite\build) -Authentication CredSSP
 }
+
+function Get-GeoIPLocation
+{
+	$wc = New-Object System.Net.WebClient
+	$key = "e691624bc74862d640d62e26327d73211d3a616ff283a3f96c357d3993b49bb7" 
+	[xml]$loc = $wc.DownloadString( "http://api.ipinfodb.com/v3/ip-city/?key=$key&format=xml" )
+	"$($loc.Response.cityName) $($loc.Response.regionName)"
+}
+
+#
+# Returns weather information for the given place (city, zip, state, whatever)
+#
+function Get-Weather
+{
+	param($place = $(Get-GeoIPLocation))
+	$safePlace = (-split $place) -join "+"
+
+	$wc = New-Object System.Net.WebClient
+	[xml]$x = $wc.DownloadString( "http://www.google.com/ig/api?weather=$($safePlace)" )
+
+	if ( (Select-Object -InputObject $x.xml_api_reply.weather.problem_cause -Property data) -eq $null )
+	{
+	    $info = $x.xml_api_reply.weather.forecast_information
+	    $condition = $x.xml_api_reply.weather.current_conditions
+	    Write-Host -ForegroundColor DarkCyan "Weather for $($info.city.data) as of $([DateTime]::Parse( $info.current_date_time.data) )"
+	    Write-Host -ForegroundColor DarkCyan "Conditions: $($condition.condition.data)"
+	    Write-Host -ForegroundColor DarkCyan "$($condition.wind_condition.data)"
+	    Write-Host -ForegroundColor DarkCyan "Temperature: $($condition.temp_f.data) F | $($condition.temp_c.data) C"
+	}
+	else
+	{
+	    throw "$($place) is not a valid place with weather info. Please correct and try again."
+	}
+}
