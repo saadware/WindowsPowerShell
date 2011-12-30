@@ -71,7 +71,8 @@ Begin
 	# if twine is enabled, ensure the target script exists
 	if ( $EnableTwine -and -not (Test-Path $TwineTargetFile) )
 	{
-		Write-Error ("Invalid twine target file $(TwineTargetFile): Specify with TwineTargetFile parameter.")
+		Write-Warning "Invalid twine target file $TwineTargetFile: disabling twine option"
+		$EnableTwine = $false
 	}
 
 	# setup environment/pathing
