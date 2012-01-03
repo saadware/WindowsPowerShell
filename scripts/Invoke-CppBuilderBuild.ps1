@@ -17,6 +17,9 @@ Build configuration to use like 'Debug' or 'Debug Build' or 'Release', etc.
 .PARAMETER TwineTargetFile
 The msbuild target file for TwineCompile
 
+.PARAMETER BDSVersion
+The version of BDS installed (default to '15.0').
+
 .PARAMETER WarningAsError
 Enables the build option to treat any compile warnings as build errors.
 
@@ -49,6 +52,7 @@ param(
 		[Parameter(Position=2)]
 		$Config = "Debug Build",
 		$TwineTargetFile = "C:\Program Files (x86)\JomiTech\TwineCompile\TCTargetsXE.targets",
+		$BDSVersion = "15.0",
 		[switch]$WarningsAsError,
 		[switch]$Rebuild,
 		[switch]$Diagnose,
@@ -78,7 +82,7 @@ Begin
 	# setup environment/pathing
 	if ( -not (Test-Path env:BDS) )
 	{
-		$bds = Get-Command bds.exe -ErrorAction SilentlyContinue
+		$bds = Get-Command bds.exe -ErrorAction SilentlyContinue | ? { $_.FileVersionInfo.ProductVersion -eq $BDSVersion }
 		if ( $bds -eq $null )
 		{
 			throw "bds.exe could not be found in your path. Ensure it is."
