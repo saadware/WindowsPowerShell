@@ -59,12 +59,79 @@ function mkp([switch]$rebuild, $config="Debug Build")
 # Retrieves the client mapping for a specific perforce branch
 function Get-P4BranchClientView($branch = "Main", $depot = "asd")
 {
-        $branchView = "//$depot/Main/..."
-        if ( $branch -ne "Main" )
-        {
-                $branchView = -split (p4 branch -o $branch | select-string "//.+\.\.\. //.+\.\.\." | select -ExpandProperty Line) | select -Last 1
-        }
-        (-split (p4 where $branchView) | select -Last 1) -replace "\\\.\.\.", ""
+	
+	if ( (p4 info | sls -Pattern 'Client stream:' -quiet) )
+	{
+		Get-P4StreamView
+	}
+	else
+	{
+		$branchView = "//$depot/Main/..."
+		if ( $branch -ne "Main" )
+		{
+			$branchView = -split (p4 branch -o $branch | select-string "//.+\.\.\. //.+\.\.\." | select -ExpandProperty Line) | select -Last 1
+		}
+		get-item ((-split (p4 where $branchView) | select -Last 1) -replace "\\\.\.\.", "")
+	}
+}
+
+# Retrieves the client mapping for a specific perforce stream
+function Get-P4StreamView
+{
+	$p4Info = p4 info
+	$clientRoot = $p4Info | sls -Pattern 'Client root: (.*)'
+	if ( $clientRoot -ne $null )
+	{
+		get-item $clientRoot.Matches[0].Groups[1].Value
+	}
+}
+
+
+function Set-P4Stream
+{
+	[CmdletBinding(DefaultParameterSetName="name")]
+	param
+	(
+		[Parameter( Position=0, Mandatory=$true, ParameterSetName="path" )]
+		$path, 
+		[Parameter( Position=0, Mandatory=$true, ParameterSetName="name" )]
+		$name,
+		[Parameter( Position=1, Mandatory=$false )]
+		[switch]
+		$update
+
+	)
+	if ( $PSCmdlet.ParameterSetName -eq 'path' )
+	{
+		p4 workspace -s -S $path
+		if ( $update )
+		{
+			Write-Output "Updating stream $path..."
+			p4 update -q
+			$history = get-history -count 1
+			$syncTime = ($history.EndExecutionTime - $history.StartExecutionTime).TotalMilliseconds
+			Write-Verbose "Sync time took $syncTime ms"
+		}
+	}
+	else
+	{
+		$stream = p4 streams -F "Name=$name"
+		if ( $stream -eq $null )
+		{
+			throw "Stream with name, $name, not found."
+		}
+		$path = (-split $stream)[1]
+		p4 workspace -s -S $path
+
+		if ( $update )
+		{
+			Write-Output "Updating stream $path..."
+			p4 update -q
+			$history = get-history -count 1
+			$syncTime = ($history.EndExecutionTime - $history.StartExecutionTime).Milliseconds
+			Write-Verbose "Sync time took $syncTime ms"
+		}
+	}
 }
 
 # Generates blank ccnet config for use with building
