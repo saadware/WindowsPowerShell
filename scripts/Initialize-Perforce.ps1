@@ -9,10 +9,22 @@ if ( $LASTEXITCODE -ne 0 )
 	p4 login
 }
 
+# determine user name
+$p4User = (p4 user -o | sls -Pattern "^User:\s+(?<user>\w+)").Matches[0].Groups["user"].Value
+
 # setup some environment variables
 if ( -not (test-path env:P4CLIENT) )
 { 
-	set-item env:P4CLIENT $env:COMPUTERNAME 
+	# Determine the last client this user submitted changes under
+	if ( (p4 changes -m 1 -u $p4User | Measure ).Count -ne 1 )
+	{
+		set-item env:P4CLIENT $env:COMPUTERNAME 
+	}
+	else
+	{
+		$p4Client = (p4 changes -m 1 -u $p4User | sls -Pattern "$p4User@(?<client>\w+\b)").Matches[0].Groups["client"].Value
+		set-item env:P4CLIENT $p4Client
+	}
 }
 set-item env:P4_ROOT (p4 client -o | Select-String -Pattern "^Root:\s+(?<path>\w:.*$)").Matches[0].Groups["path"].Value
 
@@ -26,13 +38,7 @@ else
 {
     $gvimExe = get-item (join-path (get-item 'env:\ProgramFiles').Value 'Vim\vim73\gvim.exe')
 }
-
 set-item env:P4EDITOR $gvimExe.FullPath
-
-# Other variables 
-set-item env:NANT_HOME (join-path $env:P4_ROOT  '\nub\nant-0.90')
-set-item env:NANT_CONTRIB (join-path $env:P4_ROOT '\nub\nantcontrib-0.85')
-set-item env:CXXTEST_HOME (join-path $env:P4_ROOT '\nub\cxxtest')
 
 # Setup some path shite
 set-item env:Path ( $env:Path + ';' + (join-path $env:NANT_HOME '\bin') )
@@ -59,7 +65,6 @@ function mkp([switch]$rebuild, $config="Debug Build")
 # Retrieves the client mapping for a specific perforce branch
 function Get-P4BranchClientView($branch = "Main", $depot = "asd")
 {
-	
 	if ( (p4 info | sls -Pattern 'Client stream:' -quiet) )
 	{
 		Get-P4StreamView
