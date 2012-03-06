@@ -11,6 +11,14 @@ if ( (Get-PSSnapin Pscx -ErrorAction SilentlyContinue) -eq $null -and (Get-PSSna
 # Start Personal Customization
 ###############################################################################
 
+###############################################################################
+# Alias
+###############################################################################
+if ( -not (Test-Path alias:sls) )
+{
+	new-alias sls select-string -Option "AllScope,Constant"
+}
+
 # Path to include scripts directory
 $scriptsDir = (Resolve-Path (Join-Path (get-item $PROFILE).Directory 'scripts') ).Path
 

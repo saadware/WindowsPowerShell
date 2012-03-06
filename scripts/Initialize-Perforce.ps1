@@ -41,7 +41,10 @@ else
 set-item env:P4EDITOR $gvimExe.FullPath
 
 # Setup some path shite
-set-item env:Path ( $env:Path + ';' + (join-path $env:NANT_HOME '\bin') )
+if ( (Test-Path env:NANT_HOME) )
+{
+	set-item env:Path ( $env:Path + ';' + (join-path $env:NANT_HOME '\bin') )
+}
 set-item env:Path ( $env:Path + ';' + (join-path $env:P4_ROOT 'ssaad\WindowsPowerShell\scripts') )
 
 # Build any group files
