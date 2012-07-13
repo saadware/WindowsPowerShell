@@ -32,11 +32,11 @@ set-item env:P4_ROOT (p4 client -o | Select-String -Pattern "^Root:\s+(?<path>\w
 $is64bit = ( $null -ne (get-item 'env:\ProgramFiles(x86)' -ErrorAction SilentlyContinue) )
 if ( $is64bit )
 {
-    $gvimExe = get-item (join-path (get-item 'env:\ProgramFiles(x86)').Value 'Vim\vim73\gvim.exe')
+	$gvimExe = get-item (join-path (get-item 'env:\ProgramFiles(x86)').Value 'Vim\vim73\gvim.exe')
 }
 else
 {
-    $gvimExe = get-item (join-path (get-item 'env:\ProgramFiles').Value 'Vim\vim73\gvim.exe')
+	$gvimExe = get-item (join-path (get-item 'env:\ProgramFiles').Value 'Vim\vim73\gvim.exe')
 }
 set-item env:P4EDITOR $gvimExe.FullPath
 
@@ -50,13 +50,13 @@ set-item env:Path ( $env:Path + ';' + (join-path $env:P4_ROOT 'ssaad\WindowsPowe
 # Build any group files
 function mkg($branch = "Main", [switch]$rebuild, $config = "Debug Build")
 {
-        Get-Item (Join-Path (Get-P4BranchClientView $branch) "MoversSuite\MoversSuite.groupproj") | Invoke-CppBuilderBuild.ps1 -EnableTwine -Target $( if ( $rebuild ) { "Build" } else { "Make" } ) -Config $config
+	Get-Item (Join-Path (Get-P4BranchClientView $branch) "MoversSuite\MoversSuite.groupproj") | Invoke-CppBuilderBuild.ps1 -EnableTwine -Target $( if ( $rebuild ) { "Build" } else { "Make" } ) -Config $config
 }
 
 # Build components 
 function mkc($branch = "Main", [switch]$rebuild, $config = "Debug Build")
 {
-        Get-Item (Join-Path (Get-P4BranchClientView $branch) "Components\Borland\MssComponents.cbproj") | Invoke-CppBuilderBuild.ps1 -EnableTwine -Target $( if ( $rebuild ) { "Build" } else { "Make" } ) -Config $config
+	Get-Item (Join-Path (Get-P4BranchClientView $branch) "Components\Borland\MssComponents.cbproj") | Invoke-CppBuilderBuild.ps1 -EnableTwine -Target $( if ( $rebuild ) { "Build" } else { "Make" } ) -Config $config
 }
 
 # Build all project files
@@ -107,7 +107,6 @@ function Set-P4Stream
 		[Parameter( Position=1, Mandatory=$false )]
 		[switch]
 		$update
-
 	)
 	if ( $PSCmdlet.ParameterSetName -eq 'path' )
 	{
@@ -145,43 +144,43 @@ function Set-P4Stream
 # Generates blank ccnet config for use with building
 function ccbuilds
 {
-        $root = ( join-path $env:P4_ROOT 'nub\ccnet-1.5.7256.1' )
-	$config = "ccbuilds.crap.ccnet.config"
-        push-location ( join-path $root 'server' )
-         "<cruisecontrol></cruisecontrol>" | out-file -encoding UTF8 ( join-path $root $config )
-        & .\ccnet.exe `-config:$config
+	$root = ( join-path $env:P4_ROOT 'tools\ccnet' )
+	$config = join-path $root "ccbuilds.crap.ccnet.config"
+	write-verbose "configuration file is $config"
+	push-location ( join-path $root 'server' )
+	"<cruisecontrol></cruisecontrol>" | out-file -encoding UTF8 $config
+	& .\ccnet.exe `-config:$config
 }
 
 # Generates a config based off the branch specified and runs ccnet
 function ccnet
 {
-        param
-        (
-                [Parameter(Mandatory=$true)]
-                $branch, 
+	param
+	(
+		[Parameter(Mandatory=$true)]
+		$branch, 
 
-                [Parameter(Mandatory=$true)]
-                $production,
+		[Parameter(Mandatory=$true)]
+		$production,
 
-                $snapshot = "$($production)_snap",
+		$snapshot = "$($production)_snap",
 
-                [Parameter(Mandatory=$true)]
-                $gp,
+		[Parameter(Mandatory=$true)]
+		$gp,
 
-                $template = $null
-        )
+		$template = $null
+	)
 
 
-        $root = ( join-path $env:P4_ROOT 'nub\ccnet-1.5.7256.1' )
+	$root = ( join-path $env:P4_ROOT 'tools\ccnet' )
 
-        push-location ( join-path $root 'server' )
-        generate-ccnet -branch $branch -gp $gp -production $production -snapshot $snapshot -template $template | out-file -encoding UTF8 ( join-path $root "server\$branch.crap.ccnet.config" )
-        & .\ccnet.exe `-config:$branch.crap.ccnet.config 
+	push-location ( join-path $root 'server' )
+	generate-ccnet -branch $branch -gp $gp -production $production -snapshot $snapshot -template $template | out-file -encoding UTF8 ( join-path $root "server\$branch.crap.ccnet.config" )
+	& .\ccnet.exe `-config:$branch.crap.ccnet.config 
 }
 
 # shortcut for main building
 function cc
 {
-        ccnet -branch Main -production MainJohnson -gp JSM
+	ccnet -branch Main -production MainJohnson -gp JSM
 }
-
