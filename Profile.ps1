@@ -21,26 +21,13 @@ if ( -not (Test-Path alias:sls) )
 
 # Path to include scripts directory
 $scriptsDir = (Resolve-Path (Join-Path (get-item $PROFILE).Directory 'scripts') ).Path
-
 set-item env:Path ( $env:Path + ';' + $scriptsDir )
-# Perforce (if available)
-if ( $null -ne ( Get-Command p4.exe -ErrorAction SilentlyContinue ) )
-{
-    . "$scriptsDir\Initialize-Perforce.ps1"
-}
 
 # Path
-set-item env:Path "$env:Path;c:\Python25;c:\MinGW\bin;c:\Ruby\bin;x:\Tools;x:\mysql\bin;X:\tools\chromium_depot_tools"
+set-item env:Path "$env:Path;c:\Python25;c:\MinGW\bin;c:\Ruby\bin;x:\Tools;x:\mysql\bin;"
 
-# If we have perforce then set our location to that
-if ( $null -ne ( Get-Item env:P4_ROOT -ErrorAction SilentlyContinue ))
-{
-    set-location $env:P4_ROOT
-}
-else
-{
-    set-location $env:USERPROFILE 
-}
+# location
+set-location $env:USERPROFILE 
 
 ###############################################################################
 # Functions
