@@ -116,6 +116,9 @@ Process
 				# generate temporary project file that has the twine options punched in
 				$tmpBuildFile = -join ($projectPath + ".tmp")
 
+				# remove temporary generated twine files (if any)
+				rm (join-path $fileObject.Directory 'twfiles.@@@') -ErrorAction SilentlyContinue
+
 				Write-Verbose "adding twine msbuild target to project"
 				[xml]$projXml = Get-Content $projectPath
 				$projXml.Project.InnerXml = ($projXml.Project.InnerXml + "<Import Project=`'$TwineTargetFile`' />")
