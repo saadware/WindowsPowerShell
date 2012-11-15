@@ -92,7 +92,7 @@ Begin
 	}
 	Set-Item env:FrameworkDir "C:\Windows\Microsoft.NET\Framework\v2.0.50727"
 	Set-Item env:FrameworkVersion "v2.0.50727"
-	if ( (Get-Command msbuild.exe -ErrorAction SilentlyContinue) -eq $null )
+	if ( (Get-Command msbuild.exe -ErrorAction SilentlyContinue).Path -ne "$env:FrameworkDir\MSBuild.exe")
 	{
 		Set-Item env:Path "$env:FrameworkDir;$env:Path"
 	}
@@ -124,7 +124,6 @@ Process
 				$projXml.Project.InnerXml = ($projXml.Project.InnerXml + "<Import Project=`'$TwineTargetFile`' />")
 				$projXml.OuterXml | Out-File -FilePath $tmpBuildFile -Encoding UTF8
 			}
-
 			# Run cmd so that options get sent it properly.
 			$theFileOutputName = $fileObject.BaseName
 			cmd.exe /c "msbuild.exe /nologo $tmpBuildFile $twineOptions /t:$Target /p:Config=`"$Config`" /p:BCC_WarningIsError=$WarningsAsError /p:OutputName=$theFileOutputName $(if ( $Diagnose ) {'/verbosity:diagnostic' } elseif( $VerbosePreference -eq 'Continue' ) { '/verbosity:detailed' } elseif ( $Quiet ) { '/verbosity:quiet' } else { '/verbosity:normal' }) /p:ForceRebuild=$Rebuild"
