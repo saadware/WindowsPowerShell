@@ -66,7 +66,7 @@ function VsVars32($version = "9.0")
 function rdc
 {
         param([string]$machine, [switch]$fullscreen)
-        Invoke-Expression "mstsc /v:$machine $( if($fullscreen) { '/fullscreen' } else { '/w:1280 /h:1024' } )"
+        Invoke-Expression "mstsc /v:$machine $( if($fullscreen) { '/fullscreen' } else { '/w:1280 /h:720' } )"
 }
 
 # restore a database from snapshot
