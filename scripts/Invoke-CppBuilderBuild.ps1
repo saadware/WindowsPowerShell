@@ -82,13 +82,28 @@ Begin
 	# setup environment/pathing
 	if ( -not (Test-Path env:BDS) )
 	{
+		# get bds that matches our version (probably in path)
 		$bds = Get-Command bds.exe -ErrorAction SilentlyContinue | ? { $_.FileVersionInfo.ProductVersion -eq $BDSVersion }
 		if ( $bds -eq $null )
 		{
-			throw "bds.exe could not be found in your path. Ensure it is."
+			# attempt to see if we can find it in program files
+			$programFilesDir = $Env:ProgramFiles
+			if ( Test-Path 'Env:\ProgramFiles(x86)' )
+			{
+				$programFilesDir = ${env:ProgramFiles(x86)} 
+			}
+			$bds = ls -Filter bds.exe -Path (join-path $programFilesDir 'Embarcadero') -Recurse | ? { $_.VersionInfo.ProductVersion -eq $BDSVersion }
+			if ( $bds -eq $null )
+			{
+				throw "bds.exe could not be found in your path. Ensure it is."
+			}
 		}
-		Set-Item env:BDS (Get-item $bds.Path).Directory.Parent.FullName
-		Set-Item env:CG_BOOST_ROOT (join-path (Get-item $bds.Path).Directory.Parent.FullName 'include\boost_1_39')
+		else
+		{
+			$bds = (Get-Item $bds.Path)
+		}
+		Set-Item env:BDS $bds.Directory.Parent.FullName
+		Set-Item env:CG_BOOST_ROOT (join-path $bds.Directory.Parent.FullName 'include\boost_1_39')
 	}
 	Set-Item env:FrameworkDir "C:\Windows\Microsoft.NET\Framework\v2.0.50727"
 	Set-Item env:FrameworkVersion "v2.0.50727"
