@@ -92,13 +92,6 @@ function New-DatabaseSnapshot
 		$Logical,
 		$Snapshot = $Database + "_snap"
 	)
-	if ( ( Get-PSSnapin SqlServerCmdletSnapin100 -ErrorAction SilentlyContinue ) -eq $null )
-	{
-		if ( (Get-Module mssql) -eq $null )
-		{
-			throw "The sql cmdlet needs to be loaded (possibly with Import-Module Mssql)"
-		}
-	}
 	$helpFile = Invoke-Sqlcmd -ServerInstance $Server -Database $Database "exec sp_helpfile" | ? { $_.filename.Endswith( ".mdf" )} 
 	if ( $Logical -eq $null )
 	{
@@ -218,11 +211,6 @@ function Kill-Sql
 
 function Get-CustomerBuilds
 {
-
-	if ( (Get-Module Mssql) -eq $null )
-	{
-		Import-Module Mssql
-	}
 	Invoke-Sqlcmd -ServerInstance lion-o -Database CustomerBuilds -Query "
 	select
 		s.Name as StartName,
