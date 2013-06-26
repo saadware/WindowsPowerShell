@@ -48,7 +48,7 @@ param(
 		$Target = "Make",
 		[Parameter(Position=2)]
 		$Config = "Debug Build",
-		$BDSVersion = "XE",
+		$BDSVersion = "XE4",
 		[switch]$WarningsAsError,
 		[switch]$Rebuild,
 		[switch]$Diagnose,
@@ -98,7 +98,7 @@ Begin
 	}
 
 	# setup environment/pathing
-	if ( -not (Test-Path env:BDS) )
+	if ( 1 -ne 0 -or ( -not (Test-Path env:BDS) ) )
 	{
 		$bdsVersionNumber = "15.0"
 		switch ( $BDSVersion )
@@ -106,6 +106,7 @@ Begin
 			"XE"  { $bdsVersionNumber = "15.0"; break }
 			"XE2" { $bdsVersionNumber = "16.0"; break }
 			"XE3" { $bdsVersionNumber = "17.0"; break }
+			"XE4" { $bdsVersionNumber = "18.0"; break }
 		}
 		Write-Verbose "Found BDS version $bdsVersionNumber."
 
@@ -127,7 +128,7 @@ Begin
 		Set-Item env:CG_BOOST_ROOT (join-path $bds.Directory.Parent.FullName 'include\boost_1_39')
 		write-verbose "Using bds: $($bds.FullName)"
 	}
-	if ( $BDSVersion -eq "XE3" )
+	if ( $BDSVersion -eq "XE3" -or $BDSVersion -eq "XE4" )
 	{
 		Set-Item env:FrameworkDir "C:\Windows\Microsoft.NET\Framework\v3.5"
 		Set-Item env:FrameworkVersion "v3.5"
